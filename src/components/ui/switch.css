@@ -1,0 +1,62 @@
+/* Switch Component Styles - Multiple Selector Approaches */
+/* Approach 1: Role-based selectors */
+[role="switch"] {
+  background-color: #d1d5db !important;
+  transition: background-color 0.3s ease-in-out !important;
+}
+
+[role="switch"][data-state="checked"] {
+  background-color: #2563eb !important;
+}
+
+[role="switch"][data-state="unchecked"] {
+  background-color: #d1d5db !important;
+}
+
+/* Approach 2: Data attribute selectors */
+[data-radix-switch-root] {
+  background-color: #d1d5db !important;
+  transition: background-color 0.3s ease-in-out !important;
+}
+
+[data-radix-switch-root][data-state="checked"] {
+  background-color: #2563eb !important;
+}
+
+[data-radix-switch-root][data-state="unchecked"] {
+  background-color: #d1d5db !important;
+}
+
+/* Approach 3: Direct button selectors */
+button[role="switch"] {
+  background-color: #d1d5db !important;
+  transition: background-color 0.3s ease-in-out !important;
+}
+
+button[role="switch"][data-state="checked"] {
+  background-color: #2563eb !important;
+}
+
+button[role="switch"][data-state="unchecked"] {
+  background-color: #d1d5db !important;
+}
+
+/* Thumb styling - multiple approaches */
+[data-radix-switch-thumb],
+[role="switch"] > span,
+button[role="switch"] > span {
+  transform: translateX(2px) !important;
+  transition: transform 0.3s ease-in-out !important;
+}
+
+[data-radix-switch-thumb][data-state="checked"],
+[role="switch"][data-state="checked"] > span,
+button[role="switch"][data-state="checked"] > span {
+  transform: translateX(22px) !important;
+}
+
+[data-radix-switch-thumb][data-state="unchecked"],
+[role="switch"][data-state="unchecked"] > span,
+button[role="switch"][data-state="unchecked"] > span {
+  transform: translateX(2px) !important;
+}
