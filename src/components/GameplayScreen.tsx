@@ -9,12 +9,13 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 interface GameplayScreenProps {
   countries: Country[];
   region: string;
+  useGeoguessrFavorites: boolean;
   onGameEnd: (streak: number) => void;
   onHome: () => void;
   onAnnouncement: (message: string) => void;
 }
 
-export default function GameplayScreen({ countries, region, onGameEnd, onHome, onAnnouncement }: GameplayScreenProps) {
+export default function GameplayScreen({ countries, region, useGeoguessrFavorites, onGameEnd, onHome, onAnnouncement }: GameplayScreenProps) {
   const [currentCountry, setCurrentCountry] = useState<Country | null>(null);
   const [options, setOptions] = useState<Country[]>([]);
   const [streak, setStreak] = useState(0);
@@ -29,7 +30,7 @@ export default function GameplayScreen({ countries, region, onGameEnd, onHome, o
 
   useEffect(() => {
     if (countries.length > 0) {
-      startNewQuestion();
+      startNewQuestion().catch(console.error);
     }
   }, [countries, region]);
 
@@ -40,17 +41,39 @@ export default function GameplayScreen({ countries, region, onGameEnd, onHome, o
     }
   }, [loading, currentCountry]);
 
-  const startNewQuestion = () => {
+  const startNewQuestion = async () => {
     setLoading(true);
-    const randomCountries = getRandomCountries(countries, 1, region);
+    
+    let countriesToUse = countries;
+    
+    // If Geoguessr favorites is enabled, filter to only those countries
+    if (useGeoguessrFavorites) {
+      try {
+        const { getGeoguessrFavorites } = await import('../utils/supabase/geoguessrFavorites');
+        const favoriteCca3Codes = await getGeoguessrFavorites();
+        countriesToUse = countries.filter(country => 
+          favoriteCca3Codes.includes(country.cca3)
+        );
+        
+        if (countriesToUse.length === 0) {
+          onGameEnd(streak);
+          return;
+        }
+      } catch (error) {
+        console.error('Error loading Geoguessr favorites:', error);
+        // Fallback to regular countries if there's an error
+        countriesToUse = countries;
+      }
+    }
+    
+    const randomCountries = getRandomCountries(countriesToUse, 1, region);
     
     if (randomCountries.length === 0) {
       onGameEnd(streak);
       return;
     }
     
-    const country = randomCountries[0];
-    const questionOptions = generateQuestionOptions(country, countries, region);
+    const country = randomCountries[0]; const questionOptions = generateQuestionOptions(country, countriesToUse, region);
     
     setCurrentCountry(country);
     setOptions(questionOptions);
@@ -84,7 +107,7 @@ export default function GameplayScreen({ countries, region, onGameEnd, onHome, o
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, country: Country) => {
+  const handleKeyDown = (event: React.KeyboardEvent, country: Country) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       if (!showResult) {
