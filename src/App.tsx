@@ -39,6 +39,29 @@ export default function App() {
     }
   }, [currentScreen]);
 
+  // Add reduced motion support
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    
+    if (mediaQuery.matches) {
+      document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+      document.documentElement.style.setProperty('--transition-duration', '0.01ms');
+    }
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+        document.documentElement.style.setProperty('--transition-duration', '0.01ms');
+      } else {
+        document.documentElement.style.removeProperty('--animation-duration');
+        document.documentElement.style.removeProperty('--transition-duration');
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   const handleStartGame = (countriesData: Country[]) => {
     setCountries(countriesData);
     setCurrentScreen("game");
@@ -95,6 +118,7 @@ export default function App() {
           <GameplayScreen 
             countries={countries}
             region={selectedRegion}
+            useGeoguessrFavorites={useGeoguessrFavorites}
             onGameEnd={handleGameEnd}
             onHome={handleGoHome}
             onAnnouncement={setAnnouncement}
@@ -105,13 +129,14 @@ export default function App() {
           <EndRoundScreen 
             streak={gameStreak}
             onPlayAgain={handlePlayAgain}
-            onHome={handleGoHome}
+            onGoHome={handleGoHome}
           />
         );
       case "flags":
         return (
           <FlagLibraryScreen 
             countries={countries}
+            selectedRegion={selectedRegion}
             onBack={handleGoHome}
           />
         );
@@ -127,36 +152,23 @@ export default function App() {
           />
         );
       default:
-        return (
-          <HomeScreen 
-            selectedRegion={selectedRegion}
-            onStartGame={handleStartGame}
-            onViewFlags={handleViewFlags}
-            onSettings={handleSettings}
-          />
-        );
+        return null;
     }
   };
 
   return (
-    <div className="size-full">
-      {/* Skip Links */}
-      <SkipLink href="#main-content">Skip to main content</SkipLink>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <SkipLink />
+      <LiveAnnouncer announcement={announcement} />
       
-      {/* Live Announcer for Screen Readers */}
-      <LiveAnnouncer message={announcement} />
-      <div id="live-announcer" aria-live="polite" aria-atomic="true" className="sr-only" />
-      
-      {/* Main Application */}
       <main 
-        id="main-content"
         ref={mainRef}
         tabIndex={-1}
-        className="outline-none"
+        className="min-h-screen"
         role="main"
-        aria-label={`Fun with Flags - ${currentScreen} screen`}
+        aria-label="Fun with Flags Game"
       >
-        {renderScreen()}
+       {renderScreen()}
       </main>
     </div>
   );
