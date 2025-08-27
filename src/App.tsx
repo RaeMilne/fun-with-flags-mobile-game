@@ -129,14 +129,13 @@ export default function App() {
           <EndRoundScreen 
             streak={gameStreak}
             onPlayAgain={handlePlayAgain}
-            onGoHome={handleGoHome}
+            onHome={handleGoHome}
           />
         );
       case "flags":
         return (
           <FlagLibraryScreen 
             countries={countries}
-            selectedRegion={selectedRegion}
             onBack={handleGoHome}
           />
         );
@@ -158,8 +157,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <SkipLink />
-      <LiveAnnouncer announcement={announcement} />
+      <SkipLink href="#main" children="Skip to main content" />
+      <LiveAnnouncer message={announcement} />
       
       <main 
         ref={mainRef}
